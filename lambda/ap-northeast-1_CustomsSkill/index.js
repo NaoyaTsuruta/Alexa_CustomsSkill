@@ -1,7 +1,6 @@
 'use strict'
 const Alexa = require('ask-sdk');
 var moment = require('moment');
-require('date-utils');
 
  
 let skill;
@@ -39,13 +38,13 @@ const LaunchRequestHandler = {
         if(attributes == true){
             //2回目以降の起動
             LaunchSpeech = '習慣チェッカーです！また来てくれてありがとう！';
-            DescriptionSpeech = '習慣を行なってからどれくらいたっっているかを聞けるよ。';
+            DescriptionSpeech = '習慣を行なってからどれくらいたっっているかを聞けます。';
             AskSpeech = '今日は行なった習慣は何ですか？洗濯や掃除、筋トレのように言っててください！';
         }else{
             //初回起動時のスキルの説明
             LaunchSpeech = '初めまして！習慣チェッカーです。これからよろしくお願いします！';
             DescriptionSpeech = 'このスキルは掃除や洗濯などの習慣を登録すると、前回その習慣を行なってから何日経っているかを知ることができます。';
-            AskSpeech = 'あなたは初めての利用ですね。記念すべき１つ目の習慣にしたいことを洗濯や掃除、筋トレのように言っててください！';
+            AskSpeech = 'あなたは初めての利用ですね。記念すべき１つ目の習慣を登録しましょう！今日行った習慣を洗濯や掃除、筋トレのように言ってください！';
         }
 
         const Speech = LaunchSpeech + DescriptionSpeech + AskSpeech;
@@ -115,22 +114,29 @@ const CustomsIntentHandler = {
 
         let i;
         let attributes = await handlerInput.attributesManager.getPersistentAttributes();
-        let time = moment().format("YYYY/MM/DD");
-        let date = new Date(time);
+        let now = moment().format("YYYY-MM-DD");
         
-        console.log(time);
-        console.log(date);
+        if(attributes == true){
+            //2回目以降
+            now.diff(attributes[custom], 'day');//timeとfromの差を日付の形で取得できる
+        }else{
+            //初回
+            attributes = {[custom]:now};
+            const CustomsSpeech = '今日行った習慣は' + custom + 'ですね。登録しました。';
+            const GreatSpeech = '次回からは習慣を言うと前回その習慣を行ってから何日たったかを聞くことができます。また初めての習慣を言うとその習慣を登録できます。';
+            const EndSpeech = '私とあなたでより良い生活にしていきましょう！';
 
-        
+            const Speech = CustomsSpeech + GreatSpeech + EndSpeech;
 
-        
-
-    
-
-        return handlerInput.responseBuilder
+            return handlerInput.responseBuilder
             .speak(Speech)
             .reprompt(AskSpeech)
             .getResponse();
+
+        }
+
+        console.log(time);
+        console.log(date);
     }
 };
 

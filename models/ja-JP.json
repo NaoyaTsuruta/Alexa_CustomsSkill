@@ -1,0 +1,172 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "習慣チェッカー",
+      "intents": [
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": [
+            "そんなのないよ",
+            "ありがとう",
+            "ないよ",
+            "ない",
+            "もうないよ",
+            "もういいよ"
+          ]
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "CustomsIntent",
+          "slots": [
+            {
+              "name": "customs",
+              "type": "customs"
+            }
+          ],
+          "samples": [
+            "{customs} を最後にしたのはいつ",
+            "{customs} を最後にしたのは",
+            "{customs} を最後にやったのはいつ",
+            "{customs} はいつだっけ",
+            "{customs} とか",
+            "{customs} は",
+            "{customs} かな",
+            "{customs}"
+          ]
+        },
+        {
+          "name": "AMAZON.NoIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.YesIntent",
+          "samples": []
+        }
+      ],
+      "types": [
+        {
+          "values": [
+            {
+              "name": {
+                "value": "美容室"
+              }
+            },
+            {
+              "name": {
+                "value": "床屋"
+              }
+            },
+            {
+              "name": {
+                "value": "筋力トレーニング"
+              }
+            },
+            {
+              "name": {
+                "value": "トレーニング"
+              }
+            },
+            {
+              "name": {
+                "value": "柔軟"
+              }
+            },
+            {
+              "name": {
+                "value": "学習"
+              }
+            },
+            {
+              "name": {
+                "value": "学び"
+              }
+            },
+            {
+              "name": {
+                "value": "髪を切る"
+              }
+            },
+            {
+              "name": {
+                "value": "風呂掃除"
+              }
+            },
+            {
+              "name": {
+                "value": "腕立て"
+              }
+            },
+            {
+              "name": {
+                "value": "スクワット"
+              }
+            },
+            {
+              "name": {
+                "value": "腹筋"
+              }
+            },
+            {
+              "name": {
+                "value": "柔軟体操"
+              }
+            },
+            {
+              "name": {
+                "value": "筋トレ"
+              }
+            },
+            {
+              "name": {
+                "value": "部屋の掃除"
+              }
+            },
+            {
+              "name": {
+                "value": "トイレ掃除"
+              }
+            },
+            {
+              "name": {
+                "value": "買い物"
+              }
+            },
+            {
+              "name": {
+                "value": "キッチン掃除"
+              }
+            },
+            {
+              "name": {
+                "value": "掃除"
+              }
+            },
+            {
+              "name": {
+                "value": "皿洗い"
+              }
+            },
+            {
+              "name": {
+                "value": "洗濯"
+              }
+            },
+            {
+              "name": {
+                "value": "勉強"
+              }
+            }
+          ],
+          "name": "customs"
+        }
+      ]
+    }
+  }
+}

@@ -37,7 +37,7 @@ const LaunchRequestHandler = {
 
         console.log(attributes);
 
-        if(attributes){
+        if(attributes　== '{}'){
             //2回目以降の起動
             LaunchSpeech = '習慣チェッカーです！また来てくれてありがとう！';
             DescriptionSpeech = '習慣を行なってからどれくらいたっっているかを聞けます。';
@@ -69,8 +69,8 @@ const YesIntentHandler = {
     async handle(handlerInput){
         await handlerInput.attributesManager.savePersistentAttributes();
 
-        const YesSpeechpeech = '素晴らしいですね！！';
-        const AskSpeech = '他に聞きたい習慣を言ってください。'
+        const YesSpeechpeech = '素晴らしいですね！！これからも続けて行きましょう！';
+        const AskSpeech = '他に聞きたい習慣があれば洗濯や掃除、のように言ってください。'
 
         const Speech = YesSpeechpeech + AskSpeech;
 
@@ -91,8 +91,8 @@ const NoIntentHandler = {
 
     async handle(handlerInput){
 
-        const NoSpeechpeech = '頑張って習慣にしましょう！！';
-        const AskSpeech = '他に聞きたい習慣を言ってください。'
+        const NoSpeechpeech = 'なんと言うことでしょう。習慣は続けるから習慣なのですよ？しっかりと行いましょう。';
+        const AskSpeech = '他に聞きたい習慣があれば洗濯や掃除、のように言ってください。'
 
         const Speech = NoSpeechpeech + AskSpeech;
 
@@ -117,7 +117,7 @@ const CustomsIntentHandler = {
         let i;
         let attributes = await handlerInput.attributesManager.getPersistentAttributes();
         let now = moment().format("YYYY-MM-DD");
-        const CustomsSpeech;
+        let CustomsSpeech;
         
         if(attributes == true){
             //2回目以降

@@ -35,7 +35,9 @@ const LaunchRequestHandler = {
         let attributes = await handlerInput.attributesManager.getPersistentAttributes();
         let LaunchSpeech,DescriptionSpeech,AskSpeech;
 
-        if(attributes == true){
+        console.log(attributes);
+
+        if(attributes){
             //2回目以降の起動
             LaunchSpeech = '習慣チェッカーです！また来てくれてありがとう！';
             DescriptionSpeech = '習慣を行なってからどれくらいたっっているかを聞けます。';
@@ -115,28 +117,42 @@ const CustomsIntentHandler = {
         let i;
         let attributes = await handlerInput.attributesManager.getPersistentAttributes();
         let now = moment().format("YYYY-MM-DD");
+        const CustomsSpeech;
         
         if(attributes == true){
             //2回目以降
-            now.diff(attributes[custom], 'day');//timeとfromの差を日付の形で取得できる
+            if(!attributes[custom]){
+                let TimeDiff = now.diff(attributes[custom], 'day');//timeとfromの差を日付の形で取得できる
+
+                CustomsSpeech = custom + 'は前回行なった日から' + TimeDiff + '日経過しています。';
+                AskSpeech = '今日は行いましたか？';
+            }else{
+                attributes = {[custom]:now};
+
+                CustomsSpeech = custom + 'は初めての習慣ですね。登録しました。';
+            }
+
+            Speech = CustomsSpeech + AskSpeech;
+
+            return handlerInput.responseBuilder
+            .speak(Speech)
+            .reprompt(AskSpeech)
+            .getResponse();            
+
         }else{
             //初回
             attributes = {[custom]:now};
-            const CustomsSpeech = '今日行った習慣は' + custom + 'ですね。登録しました。';
-            const GreatSpeech = '次回からは習慣を言うと前回その習慣を行ってから何日たったかを聞くことができます。また初めての習慣を言うとその習慣を登録できます。';
-            const EndSpeech = '私とあなたでより良い生活にしていきましょう！';
+            CustomsSpeech = '今日行った習慣は' + custom + 'ですね。登録しました。';
+            GreatSpeech = '次回からは習慣を言うと前回その習慣を行ってから何日たったかを聞くことができます。また初めての習慣を言うとその習慣を登録できます。';
+            EndSpeech = '私とあなたでより良い生活にしていきましょう！';
 
             const Speech = CustomsSpeech + GreatSpeech + EndSpeech;
 
             return handlerInput.responseBuilder
             .speak(Speech)
-            .reprompt(AskSpeech)
             .getResponse();
 
         }
-
-        console.log(time);
-        console.log(date);
     }
 };
 
@@ -197,6 +213,7 @@ const ErrorHandler = {
     handle(handlerInput, error) {
         return handlerInput.responseBuilder
             .speak('うまくいきませんでした、ごめんなさい。')
+            .reprompt('もう一度言ってください。')
             .getResponse();
     }
 }

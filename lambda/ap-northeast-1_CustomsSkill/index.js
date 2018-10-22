@@ -114,11 +114,11 @@ const CustomsIntentHandler = {
 
     async handle(handlerInput){
         const custom = handlerInput.requestEnvelope.request.intent.slots.customs.value;
-        console.log(custom);
+        //console.log(custom);
         let attributes = await handlerInput.attributesManager.getPersistentAttributes();
-        console.log(attributes);
+        //console.log(attributes);
         let now = moment().format("YYYY-MM-DD");
-        console.log(now);
+        //console.log(now);
         let CustomsSpeech,GreatSpeech,AskSpeech;
         
         if(attributes.custom){

@@ -1,4 +1,5 @@
 'use strict'
+
 const Alexa = require('ask-sdk');
 var moment = require('moment');
 
@@ -16,9 +17,9 @@ exports.handler = async function (event, context) {
             CustomsIntentHandler,
             SessionEndedRequestHandler
         )
-        .withTableName("Name_Table")
+        .withTableName('CustomsTable')
         .withAutoCreateTable(true)
-        .addErrorHandlers(ErrorHandler)
+        //.addErrorHandlers(ErrorHandler)
         .create();
     }
     return skill.invoke(event);
@@ -33,16 +34,16 @@ const LaunchRequestHandler = {
 
      async handle(handlerInput) {
         let attributes = await handlerInput.attributesManager.getPersistentAttributes();
-        let LaunchSpeech,DescriptionSpeech,AskSpeech;
 
         console.log(attributes);
 
-        if(attributes　== '{}'){
+        console.log(attributes.count);
             //2回目以降の起動
-            LaunchSpeech = '習慣チェッカーです！また来てくれてありがとう！';
-            DescriptionSpeech = '習慣を行なってからどれくらいたっっているかを聞けます。';
-            AskSpeech = '今日は行なった習慣は何ですか？洗濯や掃除、筋トレのように言っててください！';
-        }else{
+        let LaunchSpeech = '習慣チェッカーです！また来てくれてありがとう！';
+        let DescriptionSpeech = '習慣を行なってからどれくらいたっっているかを聞けます。';
+        let AskSpeech = '今日は行なった習慣は何ですか？洗濯や掃除、筋トレのように言っててください！';
+
+        if(!attributes.count){
             //初回起動時のスキルの説明
             LaunchSpeech = '初めまして！習慣チェッカーです。これからよろしくお願いします！';
             DescriptionSpeech = 'このスキルは掃除や洗濯などの習慣を登録すると、前回その習慣を行なってから何日経っているかを知ることができます。';
@@ -113,25 +114,30 @@ const CustomsIntentHandler = {
 
     async handle(handlerInput){
         const custom = handlerInput.requestEnvelope.request.intent.slots.customs.value;
-
-        let i;
+        console.log(custom);
         let attributes = await handlerInput.attributesManager.getPersistentAttributes();
+        console.log(attributes);
         let now = moment().format("YYYY-MM-DD");
-        let CustomsSpeech;
+        console.log(now);
+        let CustomsSpeech,GreatSpeech,AskSpeech;
         
-        if(attributes == true){
+        if(attributes.custom){
+            console.log('2回目以降です');
             //2回目以降
-            if(!attributes[custom]){
+            if(attributes[custom]){
+                console.log('登録済み');
                 let TimeDiff = now.diff(attributes[custom], 'day');//timeとfromの差を日付の形で取得できる
 
                 CustomsSpeech = custom + 'は前回行なった日から' + TimeDiff + '日経過しています。';
                 AskSpeech = '今日は行いましたか？';
             }else{
+                console.log('登録します');
                 attributes = {[custom]:now};
 
                 CustomsSpeech = custom + 'は初めての習慣ですね。登録しました。';
             }
 
+            await handlerInput.attributesManager.setPersistentAttributes(attributes);
             Speech = CustomsSpeech + AskSpeech;
 
             return handlerInput.responseBuilder
@@ -140,13 +146,19 @@ const CustomsIntentHandler = {
             .getResponse();            
 
         }else{
+            console.log('初回です');
             //初回
             attributes = {[custom]:now};
             CustomsSpeech = '今日行った習慣は' + custom + 'ですね。登録しました。';
             GreatSpeech = '次回からは習慣を言うと前回その習慣を行ってから何日たったかを聞くことができます。また初めての習慣を言うとその習慣を登録できます。';
-            EndSpeech = '私とあなたでより良い生活にしていきましょう！';
+            AskSpeech = '私とあなたでより良い生活にしていきましょう！';
 
-            const Speech = CustomsSpeech + GreatSpeech + EndSpeech;
+            attributes.count = 1;
+
+            handlerInput.attributesManager.setPersistentAttributes(attributes);
+            await handlerInput.attributesManager.savePersistentAttributes();
+
+            const Speech = CustomsSpeech + GreatSpeech + AskSpeech;
 
             return handlerInput.responseBuilder
             .speak(Speech)
@@ -212,7 +224,7 @@ const ErrorHandler = {
     },
     handle(handlerInput, error) {
         return handlerInput.responseBuilder
-            .speak('うまくいきませんでした、ごめんなさい。')
+            .speak('うまくいきませんでした、ごめんなさい。もう一度言ってください。')
             .reprompt('もう一度言ってください。')
             .getResponse();
     }

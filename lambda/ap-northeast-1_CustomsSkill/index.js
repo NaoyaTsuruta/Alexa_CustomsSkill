@@ -89,7 +89,7 @@ const NoIntentHandler = {
 
     async handle(handlerInput){
 
-        const NoSpeechpeech = 'なんと言うことでしょう。習慣は続けるから習慣なのですよ？しっかりと行いましょう。';
+        const NoSpeechpeech = 'なんと言うことでしょう。習慣は続けるから習慣なのですよ？しっかりと行いましょう！';
         const AskSpeech = '他に聞きたい習慣があれば洗濯や掃除、のように言ってください。'
 
         const Speech = NoSpeechpeech + AskSpeech;
@@ -126,13 +126,14 @@ const CustomsIntentHandler = {
                 let TimeDiff = moment(now).diff(moment(attributes[custom]), 'day');//timeとfromの差を日付の形で取得できる
 
                 CustomsSpeech = custom + 'は前回行なった日から' + TimeDiff + '日経過しています。';
-                AskSpeech = '今日は行いましたか？';
+                
             }else{
                 console.log('登録します');
                 attributes = {[custom]:now};
 
                 CustomsSpeech = custom + 'は初めての習慣ですね。登録しました。';
             }
+            AskSpeech = '今日は行いましたか？';
 
             await handlerInput.attributesManager.setPersistentAttributes(attributes);
             Speech = CustomsSpeech + AskSpeech;

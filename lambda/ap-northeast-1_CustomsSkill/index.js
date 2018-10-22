@@ -35,9 +35,6 @@ const LaunchRequestHandler = {
      async handle(handlerInput) {
         let attributes = await handlerInput.attributesManager.getPersistentAttributes();
 
-        console.log(attributes);
-
-        console.log(attributes.count);
             //2回目以降の起動
         let LaunchSpeech = '習慣チェッカーです！また来てくれてありがとう！';
         let DescriptionSpeech = '習慣を行なってからどれくらいたっっているかを聞けます。';
@@ -119,14 +116,14 @@ const CustomsIntentHandler = {
         //console.log(attributes);
         let now = moment().format("YYYY-MM-DD");
         //console.log(now);
-        let CustomsSpeech,GreatSpeech,AskSpeech;
+        let CustomsSpeech,GreatSpeech,AskSpeech,Speech;
         
-        if(attributes.custom){
+        if(attributes.count){
             console.log('2回目以降です');
             //2回目以降
             if(attributes[custom]){
                 console.log('登録済み');
-                let TimeDiff = now.diff(attributes[custom], 'day');//timeとfromの差を日付の形で取得できる
+                let TimeDiff = moment(now).diff(moment(attributes[custom]), 'day');//timeとfromの差を日付の形で取得できる
 
                 CustomsSpeech = custom + 'は前回行なった日から' + TimeDiff + '日経過しています。';
                 AskSpeech = '今日は行いましたか？';

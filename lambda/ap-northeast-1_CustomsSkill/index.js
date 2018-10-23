@@ -65,6 +65,11 @@ const YesIntentHandler = {
     },
 
     async handle(handlerInput){
+        //Dynamoに保存するkeyとvalueの再取得
+        let now = moment().format("YYYY-MM-DD");
+        let custom = handlerInput.attributesManager.getSessionAttributes().custom;
+        attributes = {[custom]:now};
+        handlerInput.attributesManager.setPersistentAttributes(attributes);
         await handlerInput.attributesManager.savePersistentAttributes();
 
         const YesSpeechpeech = '素晴らしいですね！！これからも続けて行きましょう！';
@@ -110,12 +115,13 @@ const CustomsIntentHandler = {
     },
 
     async handle(handlerInput){
+        //スロットの取得,セッションに保存
         const custom = handlerInput.requestEnvelope.request.intent.slots.customs.value;
-        //console.log(custom);
+        handlerInput.attributesManager.setSessionAttributes({'custom': custom});
+
         let attributes = await handlerInput.attributesManager.getPersistentAttributes();
-        //console.log(attributes);
+
         let now = moment().format("YYYY-MM-DD");
-        //console.log(now);
         let CustomsSpeech,GreatSpeech,AskSpeech,Speech;
         
         if(attributes.count){

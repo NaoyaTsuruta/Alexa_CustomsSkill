@@ -120,7 +120,7 @@ const CustomsIntentHandler = {
         handlerInput.attributesManager.setSessionAttributes({'custom': custom});
 
         let attributes = await handlerInput.attributesManager.getPersistentAttributes();
-
+        //現在の年月日の取得
         let now = moment().format("YYYY-MM-DD");
         let CustomsSpeech,GreatSpeech,AskSpeech,Speech;
         

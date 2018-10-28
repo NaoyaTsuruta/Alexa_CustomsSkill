@@ -12,14 +12,14 @@ exports.handler = async function (event, context) {
             LaunchRequestHandler,
             YesIntentHandler,
             NoIntentHandler,
-            HelpIntentHandler,
-            CancelAndStopIntentHandler,
             CustomsIntentHandler,
+            CancelAndStopIntentHandler,
+            HelpIntentHandler,
             SessionEndedRequestHandler
         )
         .withTableName('CustomsTable')
         .withAutoCreateTable(true)
-        //.addErrorHandlers(ErrorHandler)
+        .addErrorHandlers(ErrorHandler)
         .create();
     }
     return skill.invoke(event);
@@ -33,18 +33,18 @@ const LaunchRequestHandler = {
     },
 
      async handle(handlerInput) {
-        let attributes = await handlerInput.attributesManager.getPersistentAttributes();
+        let PersistentAttributes = await handlerInput.attributesManager.getPersistentAttributes();
 
             //2回目以降の起動
-        let LaunchSpeech = '習慣チェッカーです！また来てくれてありがとう！';
-        let DescriptionSpeech = '習慣を行なってからどれくらいたっっているかを聞けます。';
-        let AskSpeech = '今日は行なった習慣は何ですか？洗濯や掃除、筋トレのように言っててください！';
+        let LaunchSpeech = 'はい！！！習慣チェッカーです！また来てくれてありがとう！';
+        let DescriptionSpeech = '習慣を行なってからどれくらいたっているかを聞けます。';
+        let AskSpeech = '聞きたい習慣は何ですか？掃除や洗濯のように言ってください！';
 
-        if(!attributes.count){
+        if(!PersistentAttributes.count){
             //初回起動時のスキルの説明
             LaunchSpeech = '初めまして！習慣チェッカーです。これからよろしくお願いします！';
-            DescriptionSpeech = 'このスキルは掃除や洗濯などの習慣を登録すると、前回その習慣を行なってから何日経っているかを知ることができます。';
-            AskSpeech = 'あなたは初めての利用ですね。記念すべき１つ目の習慣を登録しましょう！今日行った習慣を洗濯や掃除、筋トレのように言ってください！';
+            DescriptionSpeech = 'このスキルは掃除や洗濯などの習慣を登録すると、前回その習慣を行なってから何日経っているかを聞くことができます。';
+            AskSpeech = 'あなたは初めてのご利用ですね。記念すべき１つ目の習慣を登録しましょう！今日行なった習慣を、掃除や洗濯、美容室のように言ってください！';
         }
 
         const Speech = LaunchSpeech + DescriptionSpeech + AskSpeech;
@@ -66,20 +66,21 @@ const YesIntentHandler = {
 
     async handle(handlerInput){
         //Dynamoに保存するkeyとvalueの再取得
-        let now = moment().format("YYYY-MM-DD");
-        let custom = handlerInput.attributesManager.getSessionAttributes().custom;
-        attributes = {[custom]:now};
-        handlerInput.attributesManager.setPersistentAttributes(attributes);
+        const now = moment().format("YYYY-MM-DD");
+        const SessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+
+        console.log(SessionAttributes.custom);
+
+        let PersistentAttributes = await handlerInput.attributesManager.getPersistentAttributes();
+
+        PersistentAttributes[SessionAttributes.custom] = now;
+        handlerInput.attributesManager.setPersistentAttributes(PersistentAttributes);
         await handlerInput.attributesManager.savePersistentAttributes();
 
-        const YesSpeechpeech = '素晴らしいですね！！これからも続けて行きましょう！';
-        const AskSpeech = '他に聞きたい習慣があれば洗濯や掃除、のように言ってください。'
-
-        const Speech = YesSpeechpeech + AskSpeech;
+        const YesSpeech = '素晴らしい！！これからも続けて行なって行きましょう！';
 
         return handlerInput.responseBuilder
-            .speak(Speech)
-            .reprompt(AskSpeech)
+            .speak(YesSpeech)
             .getResponse();
     }
 };
@@ -94,14 +95,10 @@ const NoIntentHandler = {
 
     async handle(handlerInput){
 
-        const NoSpeechpeech = 'なんと言うことでしょう。習慣は続けるから習慣なのですよ？しっかりと行いましょう！';
-        const AskSpeech = '他に聞きたい習慣があれば洗濯や掃除、のように言ってください。'
-
-        const Speech = NoSpeechpeech + AskSpeech;
+        const NoSpeech = 'なんと言うことでしょう。習慣は続けるから習慣なのですよ？しっかりと行いましょう！';
 
         return handlerInput.responseBuilder
-            .speak(Speech)
-            .reprompt(AskSpeech)
+            .speak(NoSpeech)
             .getResponse();
     }
 };
@@ -115,51 +112,68 @@ const CustomsIntentHandler = {
     },
 
     async handle(handlerInput){
-        //スロットの取得,セッションに保存
+        //スロットの取得
         const custom = handlerInput.requestEnvelope.request.intent.slots.customs.value;
-        handlerInput.attributesManager.setSessionAttributes({'custom': custom});
 
-        let attributes = await handlerInput.attributesManager.getPersistentAttributes();
+        //セッションアトリビュートにcustomsの値を保存
+        let SessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+        SessionAttributes.custom = custom;
+        handlerInput.attributesManager.setSessionAttributes(SessionAttributes);
+
+        //DynamoDBに保存してある永続化情報を取得
+        let PersistentAttributes = await handlerInput.attributesManager.getPersistentAttributes();
+
         //現在の年月日の取得
         let now = moment().format("YYYY-MM-DD");
         let CustomsSpeech,GreatSpeech,AskSpeech,Speech;
         
-        if(attributes.count){
+        //返答の分岐
+        if(PersistentAttributes.count){
             console.log('2回目以降です');
             //2回目以降
-            if(attributes[custom]){
+            if(PersistentAttributes[custom]){
+                //登録済みの習慣だった場合
                 console.log('登録済み');
-                let TimeDiff = moment(now).diff(moment(attributes[custom]), 'day');//timeとfromの差を日付の形で取得できる
+                let TimeDiff = moment(now).diff(moment(PersistentAttributes[custom]), 'day');//timeとfromの差を日付の形で取得できる
 
-                CustomsSpeech = custom + 'は前回行なった日から' + TimeDiff + '日経過しています。';
+                CustomsSpeech = custom + 'を前回行なった日は'+ PersistentAttributes[custom] + 'で、前回行なってから' + TimeDiff + '日間、経過しています。';
+
+                AskSpeech = '今日は' + custom + 'を行ないましたか？';
+
+                Speech = CustomsSpeech + AskSpeech;
+
+                return handlerInput.responseBuilder
+                .speak(Speech)
+                .reprompt(AskSpeech)
+                .getResponse();
                 
             }else{
+                //初めての習慣だった場合
                 console.log('登録します');
-                attributes = {[custom]:now};
 
-                CustomsSpeech = custom + 'は初めての習慣ですね。登録しました。';
-            }
-            AskSpeech = '今日は行いましたか？';
+                CustomsSpeech = custom + 'は初めての習慣ですね。登録しました。習慣を続けて私とあなたでより良い生活にしていきましょう！';
 
-            await handlerInput.attributesManager.setPersistentAttributes(attributes);
-            Speech = CustomsSpeech + AskSpeech;
+                PersistentAttributes[custom] = now;
+                handlerInput.attributesManager.setPersistentAttributes(PersistentAttributes);
+                await handlerInput.attributesManager.savePersistentAttributes();
 
-            return handlerInput.responseBuilder
-            .speak(Speech)
-            .reprompt(AskSpeech)
-            .getResponse();            
+                return handlerInput.responseBuilder
+                .speak(CustomsSpeech)
+                .getResponse();
+            }            
 
         }else{
             console.log('初回です');
             //初回
-            attributes = {[custom]:now};
-            CustomsSpeech = '今日行った習慣は' + custom + 'ですね。登録しました。';
-            GreatSpeech = '次回からは習慣を言うと前回その習慣を行ってから何日たったかを聞くことができます。また初めての習慣を言うとその習慣を登録できます。';
+            PersistentAttributes[custom] = now;
+
+            PersistentAttributes.count = 1;
+
+            CustomsSpeech = '今日行なった習慣は' + custom + 'ですね。登録しました。';
+            GreatSpeech = '次回からは習慣を言うと前回その習慣を行なってから何日たったかを聞くことができます。また初めての習慣を言うとその習慣を登録できます。';
             AskSpeech = '私とあなたでより良い生活にしていきましょう！';
 
-            attributes.count = 1;
-
-            handlerInput.attributesManager.setPersistentAttributes(attributes);
+            handlerInput.attributesManager.setPersistentAttributes(PersistentAttributes);
             await handlerInput.attributesManager.savePersistentAttributes();
 
             const Speech = CustomsSpeech + GreatSpeech + AskSpeech;
@@ -181,7 +195,8 @@ const HelpIntentHandler = {
     },
 
     handle(handlerInput) {
-        const HelpSpeech = '前に行った習慣から何日経ったかを確認できます。';
+        const HelpSpeech = '習慣チェッカーは登録した習慣を前に行った日から何日経過しているかを聞くことができるスキルです。' 
+                        + '初回は習慣の登録を行います。2回目からは新しい習慣を言うと登録、登録してある習慣を言うと何日経過しているかを聞くことができます。';
         const AskSpeech = '聞きたい習慣は何ですか？';
 
         const speech = HelpSpeech + AskSpeech;
